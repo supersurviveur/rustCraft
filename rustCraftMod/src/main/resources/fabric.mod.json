@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "rustcraftmod",
+  "version": "${version}",
+  "name": "rustCraftMod",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "MIT",
+  "icon": "assets/rustcraftmod/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "fr.supersurviveur.rustcraftmod.client.RustcraftmodClient"
+    ],
+    "main": [
+      "fr.supersurviveur.rustcraftmod.Rustcraftmod"
+    ]
+  },
+  "mixins": [
+    "rustcraftmod.mixins.json",
+    {
+      "config": "rustcraftmod.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

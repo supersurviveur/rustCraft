@@ -1,0 +1,3 @@
+[submodule "rustcraft/rustcraft_mappings/yarn"]
+	path = rustcraft/rustcraft_mappings/yarn
+	url = https://github.com/FabricMC/yarn.git
