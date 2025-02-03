@@ -1,4 +1,5 @@
 cd tests
-cargo build
+DEV_MAPPINGS=1 cargo build
+# cargo build
 cd ..
-python exportLib.py
+cp ./tests/target/debug/librustcraft_test.so ./build/out/

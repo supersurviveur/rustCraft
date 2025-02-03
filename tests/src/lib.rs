@@ -1,6 +1,6 @@
 mod add_block;
 
-use rustcraft::{api::ModApi, prelude::*};
+use rustcraft::{api::ModApi, block::Block, prelude::*, register_block};
 
 use crate::add_block::MyBlock;
 
@@ -9,11 +9,9 @@ struct McMod;
 
 impl rustcraft::RustCraftMod for McMod {
     fn on_enable(&self, api: &mut ModApi) {
-        println!("Hello from Rust! with");
-        let block = MyBlock {
-            name: "test_rust".to_string(),
-        };
-        api.register_block(block);
+        println!("Hello from Rust!");
+        let block = MyBlock { i: 0 };
+        register_block!(api, block, Block);
     }
 
     fn on_disable(&self, _api: &mut ModApi) {

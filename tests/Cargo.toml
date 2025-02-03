@@ -3,12 +3,9 @@ name = "rustcraft_test"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 rustcraft = { path = "../rustcraft" }
-rustcraft_codegen = { path = "../rustcraft/rustcraft_codegen" }
-bincode = "2.0.0-rc.3"
 
 [lib]
 crate-type = ["cdylib"]

@@ -4,9 +4,17 @@ use api::ModApi;
 use jni::objects::JObject;
 use jni::JNIEnv;
 
+pub use rustcraft_codegen::register_block;
+
 pub mod api;
+pub mod block;
+pub mod object;
 pub mod prelude;
-pub mod thin;
+
+pub mod block_pos;
+pub mod minecraft_server;
+pub mod player_manager;
+pub mod world;
 
 // Define the base traits for the mod
 pub trait RustCraftMod {
@@ -16,8 +24,6 @@ pub trait RustCraftMod {
     fn on_enable(&self, _api: &mut ModApi) {}
     fn on_disable(&self, _api: &mut ModApi) {}
 }
-
-// Force struct who implement RustCraftMod to have a name field
 
 // Global variable who points to the mod struct defined by user. Use Mutex to be memory safe
 static RUSTCRAFTMOD: Mutex<Option<&'static (dyn RustCraftMod + Sync)>> = Mutex::new(None);

@@ -9,6 +9,9 @@ edition = "2021"
 quote = "^1.0"
 proc-macro2 = "1.0"
 syn = { version = "^1.0", features = ["full"] }
+proc-macro-error = "1"
+
+rustcraft_mappings = { path = "../rustcraft_mappings" }
 
 [lib]
 proc-macro = true
