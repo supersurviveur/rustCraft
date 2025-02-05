@@ -1,6 +1,7 @@
 use std::cell::RefCell;
 use std::ffi::c_void;
 use std::rc::Rc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::block::Block;
 use jni::objects::{JClass, JObject, JString, JValue, JValueGen};
@@ -84,6 +85,10 @@ impl<'local> BaseApi<'local> {
     }
 }
 
+static COUNTER: AtomicUsize = AtomicUsize::new(1);
+fn get_id() -> usize {
+    COUNTER.fetch_add(1, Ordering::Relaxed)
+}
 impl<'a> ModApi<'a> {
     pub(crate) fn get_field(
         &self,
@@ -206,14 +211,16 @@ impl<'a> ModApi<'a> {
         drop(api);
 
         let super_class = self.java_string(super_class);
+        let class_name = self.java_string(format!("DynamicClass{}", get_id()).as_str());
         let new_class = self
             .call_method(
                 None,
                 (
                     "makeClass",
-                    "([Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;",
+                    "(Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Class;",
                 ),
                 &[
+                    (&class_name).into(),
                     (&methods_names).into(),
                     (&methods_sig).into(),
                     (&super_class).into(),
@@ -236,16 +243,21 @@ impl<'a> ModApi<'a> {
         new_class_ref
     }
 
-    pub fn register_block<T: Block>(&self, new_class_ref: JObject, block: T) {
+    pub fn register_block<T: Block>(&self, new_class_ref: JObject, class_name: &str, block: T) {
         let pointer: Box<dyn Block> = Box::new(block);
         let pointer = Box::new(pointer);
         let pointer = Box::into_raw(pointer);
 
+        let class_name = self.java_string(class_name);
         let c = self.get_block_manager();
         self.call_method(
             Some(&c),
-            ("createBlock", "(JLjava/lang/Class;)V"),
-            &[(pointer as jlong).into(), (&new_class_ref).into()],
+            ("createBlock", "(JLjava/lang/String;Ljava/lang/Class;)V"),
+            &[
+                (pointer as jlong).into(),
+                (&class_name).into(),
+                (&new_class_ref).into(),
+            ],
         );
     }
 

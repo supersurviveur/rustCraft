@@ -30,12 +30,6 @@ public class RustBlock extends Block implements BlockEntityProvider {
 
 
     @Override
-    public native void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity);
-
-    @Override
-    public native ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit);
-
-    @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
         return new RustBlockEntity(pos, state);
     }

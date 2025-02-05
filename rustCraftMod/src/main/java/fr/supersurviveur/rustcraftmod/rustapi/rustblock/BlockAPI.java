@@ -33,14 +33,14 @@ public class BlockAPI {
     }
 
 
-    public void createBlock(long block, Class<?> subclass) {
+    public void createBlock(long block, String block_name, Class<?> subclass) {
         try {
-            Identifier id = Identifier.of(Rustcraftmod.MODID, "test_rust_dyn");
+            Identifier id = Identifier.of(Rustcraftmod.MODID, block_name);
             RegistryKey<Block> key = RegistryKey.of(RegistryKeys.BLOCK, id);
             RegistryKey<Item> ikey = RegistryKey.of(RegistryKeys.ITEM, id);
             Object test = subclass.getDeclaredConstructor(AbstractBlock.Settings.class).newInstance(AbstractBlock.Settings.create().registryKey(key));
             test.getClass().getField("rust_object").set(test, block);
-            Registry.register(Registries.BLOCK, Identifier.of(Rustcraftmod.MODID, "test_rust_dyn"), (Block) test);
+            Registry.register(Registries.BLOCK, Identifier.of(Rustcraftmod.MODID, block_name), (Block) test);
         } catch (InstantiationException | InvocationTargetException | IllegalAccessException | NoSuchMethodException |
                  NoSuchFieldException e) {
             throw new RuntimeException(e);

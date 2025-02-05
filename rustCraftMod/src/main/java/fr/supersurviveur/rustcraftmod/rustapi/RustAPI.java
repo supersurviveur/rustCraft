@@ -18,7 +18,7 @@ public class RustAPI {
     public static BlockAPI blockAPI;
     public static String modName;
 
-    static String buildPath = "/home/julien/code/rustCraft/build/out/librustcraft_test.so"; // TODO use a proper config for this
+    static String buildPath = "/media/julien/SSD1/code/rustCraft/build/out/librustcraft_test.so"; // TODO use a proper config for this
 
     public RustAPI(String modName) {
         System.load(buildPath);
@@ -48,7 +48,7 @@ public class RustAPI {
         return Class.forName(c.replace("/", "."));
     }
 
-    public Class<?> makeClass(String[] methodsNames, String[] methodsSig, String superClass) {
+    public Class<?> makeClass(String className, String[] methodsNames, String[] methodsSig, String superClass) {
         DynamicType.Builder<?> builder;
         if (superClass != null) {
             try {
@@ -60,7 +60,7 @@ public class RustAPI {
             builder = new ByteBuddy().subclass(Object.class);
         }
         builder = builder
-                .name("fr.supersurviveur.rustcraftmod.Test")
+                .name("fr.supersurviveur.rustcraftmod."+className)
                 .defineField("rust_object", long.class, Modifier.PUBLIC);
         try {
             for (int i = 0; i < methodsNames.length; i++) {

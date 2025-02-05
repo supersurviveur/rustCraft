@@ -147,6 +147,7 @@ pub fn mappings_sig(input: TokenStream) -> TokenStream {
 struct RegisterBlock {
     api: syn::Ident,
     block: syn::Expr,
+    name: syn::LitStr,
     t: Option<syn::Ident>,
 }
 impl Parse for RegisterBlock {
@@ -154,12 +155,19 @@ impl Parse for RegisterBlock {
         let api = input.parse()?;
         input.parse::<Token![,]>()?;
         let block = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let name = input.parse()?;
         let t = match input.parse::<Option<Token![,]>>()? {
             Some(_) => input.parse()?,
             None => None,
         };
 
-        Ok(Self { api, block, t })
+        Ok(Self {
+            api,
+            block,
+            name,
+            t,
+        })
     }
 }
 
@@ -168,6 +176,7 @@ impl Parse for RegisterBlock {
 pub fn register_block(input: TokenStream) -> TokenStream {
     let register = parse_macro_input!(input as RegisterBlock);
     let api = register.api;
+    let name = register.name;
     // default overrided trait is Block
     let t = register.t.unwrap_or(format_ident!("Block"));
     let block = register.block;
@@ -180,7 +189,7 @@ pub fn register_block(input: TokenStream) -> TokenStream {
     };
 
     quote::quote! {
-        #api.register_block(#api.register_block_natives(#t::register(&#block), #super_class), #block);
+        #api.register_block(#api.register_block_natives(#t::register(&#block), #super_class), #name, #block);
     }
     .into()
 }
