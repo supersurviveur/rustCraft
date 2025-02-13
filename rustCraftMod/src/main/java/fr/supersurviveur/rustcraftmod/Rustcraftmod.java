@@ -18,7 +18,6 @@ public class Rustcraftmod implements ModInitializer {
 
         rustAPIManager.onInitialize();
 
-
 //        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> dispatcher.register(CommandManager.literal("reload").executes(context -> {
 //            context.getSource().sendFeedback(() -> Text.literal("Called /reload"), false);
 //            rustAPIManager.reload();

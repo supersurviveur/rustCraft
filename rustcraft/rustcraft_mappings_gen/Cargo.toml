@@ -1,0 +1,11 @@
+[package]
+name = "rustcraft_mappings_gen"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rustcraft_mappings = { path = "../rustcraft_mappings" }
+jni = "0.21.1"
+
+[lib]
+crate-type = ["cdylib"]

@@ -1,9 +1,12 @@
 use core::panic;
+use std::{fs, path::Path};
 
 use proc_macro::TokenStream;
 use proc_macro_error::{abort, proc_macro_error};
 use quote::{format_ident, quote};
-use rustcraft_mappings::{convert_sig, get_class, get_multiple_class, rust_to_java_method};
+use rustcraft_mappings::{
+    codegen::auto_gen_impl, convert_sig, get_class, get_multiple_class, rust_to_java_method,
+};
 use syn::{
     parse::Parse, parse_macro_input, spanned::Spanned, ImplItem, ImplItemMethod, ItemImpl, LitStr,
     Token,
@@ -318,4 +321,22 @@ pub fn block(_attr: TokenStream, item: TokenStream) -> TokenStream {
         #impl_item
     }
     .into()
+}
+
+#[proc_macro_error]
+#[proc_macro]
+pub fn auto_gen(_item: TokenStream) -> TokenStream {
+    auto_gen_impl().into()
+}
+
+#[proc_macro_error]
+#[proc_macro]
+pub fn auto_gen_to_file(_item: TokenStream) -> TokenStream {
+    let result = auto_gen_impl();
+    // let current_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let current_dir = Path::new("/home/julien/code/rustCraft/rustcraft/src");
+    println!("Writted in {:?}", current_dir);
+    fs::write(current_dir.join("test.rs"), result.to_string()).unwrap();
+
+    quote!().into()
 }

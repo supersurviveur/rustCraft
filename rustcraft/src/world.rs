@@ -6,7 +6,7 @@ use crate::{api::ModApi, minecraft_server::MinecraftServer};
 #[derive(Debug)]
 pub struct World<'a> {
     api: ModApi<'a>,
-    inner: JObject<'a>,
+    pub inner: JObject<'a>,
 }
 
 impl<'a> World<'a> {

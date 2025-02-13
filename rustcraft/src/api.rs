@@ -133,14 +133,13 @@ impl<'a> ModApi<'a> {
     pub(crate) fn get_static_field(
         &self,
         class: &JClass,
-        field: &str,
-        field_type: &str,
+        signature: (&str, &str),
     ) -> JValueGen<JObject<'a>> {
         (*self.api)
             .borrow_mut()
             .current_env
-            .get_static_field(class, field, field_type)
-            .expect(&format!("Couldn't get field {}: {}", field, field_type))
+            .get_static_field(class, signature.0, signature.1)
+            .expect(&format!("Couldn't get field {}: {}", signature.0, signature.1))
     }
     pub(crate) fn call_static_method(
         &self,
@@ -267,5 +266,12 @@ impl<'a> ModApi<'a> {
             ("info", "(Ljava/lang/String;)V"),
             &[(&self.java_string(s)).into()],
         );
+    }
+    pub fn new_local_ref<O: AsRef<JObject<'a>>>(&self, value: &O) -> JObject<'a> {
+        (*self.api)
+            .borrow_mut()
+            .current_env
+            .new_local_ref(value)
+            .unwrap()
     }
 }

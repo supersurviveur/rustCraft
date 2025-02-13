@@ -33,9 +33,6 @@ public class RustAPI {
 
     public native void onInitialize();
 
-    public void reload() {
-        System.load(buildPath);
-    }
 
     public BlockAPI getBlockAPI() {
         return blockAPI;

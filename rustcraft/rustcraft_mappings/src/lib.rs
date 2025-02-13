@@ -1,3 +1,5 @@
+use proc_macro2::{Ident, TokenStream};
+use quote::{format_ident, quote};
 use std::{
     collections::HashMap,
     env,
@@ -5,36 +7,61 @@ use std::{
     fs::{self, DirEntry, File},
     io::{self, Read},
     iter::Peekable,
+    ops::BitAnd,
     path::Path,
-    str::Lines,
+    str::{Chars, Lines},
     sync::LazyLock,
 };
+pub mod codegen;
 
-use serde::{Deserialize, Serialize};
+use bitcode::{Decode, Encode};
 
-static MAPPINGS: LazyLock<Mappings> = LazyLock::new(|| parse_mappings().into());
+pub static MAPPINGS: LazyLock<Mappings> = LazyLock::new(|| parse_mappings().into());
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Encode, Decode, Debug, Clone)]
+pub enum Modifier {
+    None = 0,
+    Static = 1,
+    Nullable = 2,
+}
+
+impl BitAnd<u8> for Modifier {
+    type Output = bool;
+
+    fn bitand(self, rhs: u8) -> Self::Output {
+        (self as u8) & rhs != 0
+    }
+}
+
+impl BitAnd<Modifier> for u8 {
+    type Output = bool;
+
+    fn bitand(self, rhs: Modifier) -> Self::Output {
+        rhs & self
+    }
+}
+
+#[derive(Encode, Decode, Debug, Clone)]
 pub struct Class {
     pub intermediary_name: String,
     pub mapped_name: String,
     pub comments: String,
     pub fields: HashMap<String, Field>,
     pub methods_nosig: HashMap<String, String>,
-    methods: HashMap<String, Method>,
-    pub inner_classes: HashMap<String, Class>,
+    pub methods: HashMap<String, Method>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Encode, Decode, Debug, Clone)]
 pub struct Field {
     pub intermediary_name: String,
     pub mapped_name: String,
     pub field_type: String,
     pub mapped_field_type: String,
     pub comments: String,
+    pub modifiers: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Encode, Decode, Debug, Clone)]
 pub struct Method {
     pub intermediary_name: String,
     pub mapped_name: String,
@@ -42,13 +69,15 @@ pub struct Method {
     pub mapped_signature: String,
     pub comments: String,
     pub args: Vec<Arg>,
+    pub modifiers: u8,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Encode, Decode, Debug, Clone)]
 pub struct Arg {
     pub position: u16,
     pub name: String,
     pub comment: String,
+    pub modifiers: u8,
 }
 pub fn is_dev() -> bool {
     std::env::var("DEV_MAPPINGS").is_ok_and(|x| x == "1")
@@ -105,10 +134,10 @@ impl Class {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Encode, Decode, Debug)]
 pub struct Mappings {
-    pub(crate) mapped_map: HashMap<String, Class>,
-    pub(crate) intermediary_map: HashMap<String, String>,
+    pub mapped_map: HashMap<String, Class>,
+    pub intermediary_map: HashMap<String, String>,
 }
 
 impl Mappings {
@@ -144,20 +173,463 @@ impl Mappings {
 fn to_rust_convention(s: &str) -> String {
     let s = s.to_lowercase();
     let tmp = s.split("_");
-    tmp.map(|s| s.get(0..1).unwrap().to_uppercase() + s.get(1..).unwrap())
-        .collect()
+    let result = tmp
+        .map(|s| s.get(0..1).unwrap().to_uppercase() + s.get(1..).unwrap())
+        .collect();
+    result
 }
 
 pub fn method_to_java_convention(s: &str) -> String {
     to_rust_convention(s)
 }
 
+pub fn normalize(s: &mut String, insert: &str) {
+    match s.as_str() {
+        "type" | "match" | "move" | "use" | "self" | "in" | "where" | "macro" | "impl" | "box"
+        | "mod" | "ref" | "as" => s.insert_str(0, insert),
+        _ => {}
+    }
+    if s.chars().next().unwrap().is_numeric() {
+        s.insert_str(0, insert)
+    }
+}
 pub fn rust_to_java_method(s: &str) -> String {
     let s = s.to_lowercase();
     let mut tmp = s.split("_");
     let mut result = tmp.next().unwrap().to_owned();
     result.extend(tmp.map(|s| s.get(0..1).unwrap().to_uppercase() + s.get(1..).unwrap()));
     result
+}
+
+pub fn java_to_rust_class(s: &str) -> String {
+    let mut result = s.to_string();
+    normalize(&mut result, "Class");
+    result
+}
+
+pub fn java_to_rust_method(s: &str) -> String {
+    let mut result = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() {
+            // Ajoute un underscore avant la majuscule, sauf au début
+            if i != 0 {
+                result.push('_');
+            }
+            // Convertit la majuscule en minuscule
+            result.push(c.to_ascii_lowercase());
+        } else {
+            result.push(c);
+        }
+    }
+    normalize(&mut result, "method_");
+    result
+}
+
+pub fn java_to_rust_package(s: &str) -> String {
+    let mut result = String::new();
+    for (i, c) in s.chars().enumerate() {
+        if c.is_uppercase() {
+            // Ajoute un underscore avant la majuscule, sauf au début
+            if i != 0 {
+                result.push('_');
+            }
+            // Convertit la majuscule en minuscule
+            result.push(c.to_ascii_lowercase());
+        } else {
+            result.push(c);
+        }
+    }
+    normalize(&mut result, "package_");
+    result
+}
+
+pub fn java_to_rust_field(s: &str) -> String {
+    if s.chars().next().unwrap().is_uppercase() {
+        s.to_string().to_ascii_lowercase()
+    } else {
+        let mut result = String::new();
+        for (i, c) in s.chars().enumerate() {
+            if c.is_uppercase() {
+                // Ajoute un underscore avant la majuscule, sauf au début
+                if i != 0 {
+                    result.push('_');
+                }
+                // Convertit la majuscule en minuscule
+                result.push(c.to_ascii_lowercase());
+            } else {
+                result.push(c);
+            }
+        }
+        result
+    }
+}
+
+pub enum SigType {
+    Boolean,
+    Byte,
+    Char,
+    Short,
+    Int,
+    Long,
+    Float,
+    Double,
+    Void,
+
+    Array(Box<SigType>),
+    Object(String),
+}
+impl SigType {
+    pub fn jni_name(&self) -> char {
+        match self {
+            SigType::Boolean => 'z',
+            SigType::Byte => 'b',
+            SigType::Char => 'c',
+            SigType::Short => 's',
+            SigType::Int => 'i',
+            SigType::Long => 'j',
+            SigType::Float => 'f',
+            SigType::Double => 'd',
+            SigType::Void => 'v',
+            SigType::Array(_) => 'l',
+            SigType::Object(_) => 'l',
+        }
+    }
+}
+
+pub struct Signature {
+    pub ret: SigType,
+    pub args: Vec<SigType>,
+}
+
+impl SigType {
+    pub fn get_constructor(&self) -> TokenStream {
+        match self {
+            SigType::Array(_) => {
+                quote! { unreachable!() }
+            }
+            SigType::Object(s) => {
+                let mut t = vec![];
+                let length = s.split('/').count();
+                for (i, pat) in s.split('/').enumerate() {
+                    let tmp = pat.split('$');
+                    let last = tmp.clone().last().unwrap();
+                    let l = pat.chars().filter(|c| *c == '$').count();
+                    if l >= 1 {
+                        for pat in tmp.take(l) {
+                            t.push(format_ident!("{}", java_to_rust_package(pat)));
+                        }
+                    }
+                    t.push(format_ident!(
+                        "{}",
+                        if i == length - 1 {
+                            java_to_rust_class(last)
+                        } else {
+                            java_to_rust_package(last)
+                        }
+                    ));
+                }
+                quote! {crate::#(#t)::*}
+            }
+            _ => unreachable!(),
+        }
+        .into()
+    }
+}
+impl quote::ToTokens for SigType {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        tokens.extend::<TokenStream>(
+            match self {
+                SigType::Boolean => quote! {bool},
+                SigType::Long => quote! {i64},
+                SigType::Byte => quote!(i8),
+                SigType::Char => quote!(u16),
+                SigType::Short => quote!(i16),
+                SigType::Int => quote!(i32),
+                SigType::Float => quote!(f32),
+                SigType::Double => quote!(f64),
+                SigType::Void => quote! {()},
+                SigType::Array(sig_type) => {
+                    let mut t = TokenStream::new();
+                    sig_type.to_tokens(&mut t);
+                    quote! {Vec<#t>}
+                }
+                SigType::Object(s) => {
+                    let mut t = vec![];
+                    let length = s.split('/').count();
+                    for (i, pat) in s.split('/').enumerate() {
+                        let tmp = pat.split('$');
+                        let last = tmp.clone().last().unwrap();
+                        let l = pat.chars().filter(|c| *c == '$').count();
+                        if l >= 1 {
+                            for pat in tmp.take(l) {
+                                t.push(format_ident!("{}", java_to_rust_package(pat)));
+                            }
+                        }
+                        t.push(format_ident!(
+                            "{}",
+                            if i == length - 1 {
+                                java_to_rust_class(last)
+                            } else {
+                                java_to_rust_package(last)
+                            }
+                        ));
+                    }
+                    quote! {crate::#(#t)::*<'a>}
+                }
+            }
+            .into(),
+        );
+    }
+}
+
+impl Method {
+    pub fn to_tokens(&self, class_name: &str, struct_name: &Ident) -> TokenStream {
+        let mut tokens = quote!();
+        let method_name = java_to_rust_method(&self.mapped_name);
+
+        let method_type = parse_java_signature(&self.mapped_signature);
+        let jni_method_type = format_ident!("{}", method_type.ret.jni_name());
+        let method_ret = method_type.ret;
+        let method_sig = self.get_java_sig();
+        let method_java_name = self.get_java_name();
+
+        // TODO avoid some skip, currently not supported
+        match &method_ret {
+            SigType::Object(o) => {
+                if o.contains("com/mojang")
+                    || o.contains("java/")
+                    || o.contains("org/")
+                    || o.contains("javax/")
+                    || o.contains("google/")
+                    || o.contains("it/")
+                    || o.contains("io/")
+                    || o.contains("jcraft/")
+                    || o.contains("ibm/")
+                    || o.contains("microsoft/")
+                    || o.contains("sun/")
+                {
+                    return quote!();
+                }
+            }
+            SigType::Array(_) => return quote!(),
+            _ => {}
+        }
+
+        // Wrap constructors
+        if self.mapped_name == "<init>" {
+            return quote!();
+        } else if self.mapped_name.contains("lambda$") {
+            // Lambda inside function, skip
+            return quote!();
+        }
+
+        let method_ident = format_ident!("{}", method_name);
+        let mut method_content = quote!();
+        let args;
+        if self.modifiers & Modifier::Static {
+            args = quote! {api: &mut crate::api::ModApi<'a>};
+            method_content.extend::<TokenStream>(
+                quote! {
+                        let class = api.get_class(#class_name);
+                        let value =
+                             api
+                             .call_static_method(
+                                 &class,
+                                 (#method_java_name, #method_sig),
+                                 &[],
+                             )
+                             .#jni_method_type()
+                             .unwrap();
+                }
+                .into(),
+            );
+        } else {
+            args = quote! {&self};
+            method_content.extend::<TokenStream>(
+                quote! {
+                        let api = &self.api;
+                        let value = api
+                             .call_method(
+                                 Some(&self.inner),
+                                 (#method_java_name, #method_sig),
+                                 &[],
+                             )
+                             .#jni_method_type()
+                             .unwrap();
+                }
+                .into(),
+            );
+        }
+        match method_ret {
+            SigType::Object(_) => {
+                let result_constructor = method_ret.get_constructor();
+                method_content.extend(quote! {
+                    #result_constructor::new(api.clone(), value)
+                })
+            }
+            _ => method_content.extend(quote! {
+                value
+            }),
+        }
+        tokens.extend::<TokenStream>(
+            quote! {
+                pub fn #method_ident(#args) -> #method_ret {
+                    #method_content
+                }
+            }
+            .into(),
+        );
+        tokens
+    }
+}
+impl Field {
+    pub fn to_tokens(&self, class_name: &str, class: &Class) -> TokenStream {
+        let mut tokens = quote!();
+        let field_name = if self
+            .mapped_name
+            .chars()
+            .next()
+            .unwrap()
+            .is_ascii_uppercase()
+        {
+            let name = &rust_to_java_method(&self.mapped_name);
+            &format!("const{}{}", &name[0..1].to_ascii_uppercase(), &name[1..])
+        } else {
+            let name = &self.mapped_name;
+            &format!("get{}{}", &name[0..1].to_ascii_uppercase(), &name[1..])
+        };
+        // if self.mapped_name == "INSTANCE" {
+        //     println!("{}\n{:?}", field_name, class.methods_nosig.keys());
+        // }
+        if class.methods_nosig.contains_key(field_name) {
+            // a getter already exists
+            return quote! {};
+        }
+        let field_name = java_to_rust_field(field_name);
+        // field_name = format!("field_{}", field_name);
+        // normalize(&mut field_name, "");
+
+        let field_type = parse_type(&mut self.mapped_field_type.chars().peekable());
+        let field_sig = self.get_java_type();
+        let jni_field_type = format_ident!("{}", field_type.jni_name());
+        let field_java_name = self.get_java_name();
+
+        // TODO avoid some skip, currently not supported
+        match &field_type {
+            SigType::Object(o) => {
+                if o.contains("com/mojang")
+                    || o.contains("java/")
+                    || o.contains("org/")
+                    || o.contains("javax/")
+                    || o.contains("google/")
+                    || o.contains("it/")
+                    || o.contains("io/")
+                    || o.contains("jcraft/")
+                    || o.contains("ibm/")
+                    || o.contains("microsoft/")
+                    || o.contains("sun/")
+                    || o.contains("jdk/")
+                    || o.contains("oshi/")
+                {
+                    return quote!();
+                }
+            }
+            SigType::Array(_) => return quote!(),
+            _ => {}
+        }
+        let field_ident = format_ident!("{}", field_name);
+        let mut field_content = quote!();
+        let args;
+        if self.modifiers & Modifier::Static {
+            args = quote! {api: &mut crate::api::ModApi<'a>};
+            field_content.extend::<TokenStream>(
+                quote! {
+                        let class = api.get_class(#class_name);
+                        let value =
+                             api
+                             .get_static_field(
+                                 &class,
+                                 (#field_java_name, #field_sig)
+                             )
+                             .#jni_field_type()
+                             .unwrap();
+                }
+                .into(),
+            );
+        } else {
+            args = quote! {&self};
+            field_content.extend::<TokenStream>(
+                quote! {
+                        let api = &self.api;
+                        let value = api
+                             .get_field(
+                                 Some(&self.inner),
+                                 (#field_java_name, #field_sig)
+                             )
+                             .#jni_field_type()
+                             .unwrap();
+                }
+                .into(),
+            );
+        }
+        match field_type {
+            SigType::Object(_) => {
+                let result_constructor = field_type.get_constructor();
+                field_content.extend(quote! {
+                    #result_constructor::new(api.clone(), value)
+                })
+            }
+            _ => field_content.extend(quote! {
+                value
+            }),
+        }
+        tokens.extend::<TokenStream>(
+            quote! {
+                pub fn #field_ident(#args) -> #field_type {
+                    #field_content
+                }
+            }
+            .into(),
+        );
+        tokens
+    }
+}
+pub fn parse_type(letters: &mut Peekable<Chars>) -> SigType {
+    match letters.next().unwrap() {
+        'Z' => SigType::Boolean,
+        'B' => SigType::Byte,
+        'C' => SigType::Char,
+        'S' => SigType::Short,
+        'I' => SigType::Int,
+        'J' => SigType::Long,
+        'F' => SigType::Float,
+        'D' => SigType::Double,
+        'V' => SigType::Void,
+        '[' => SigType::Array(Box::new(parse_type(letters))),
+        'L' => {
+            let mut current_obj = String::new();
+            while let Some(c) = letters.next() {
+                if c == ';' {
+                    break;
+                }
+                current_obj.push(c);
+            }
+            SigType::Object(current_obj)
+        }
+        c => unreachable!("{:?}: {}", letters, c),
+    }
+}
+
+pub fn parse_java_signature(s: &str) -> Signature {
+    let mut letters = s.chars().peekable();
+    letters.next();
+    let mut args = vec![];
+    while Some(')') != letters.peek().copied() {
+        args.push(parse_type(&mut letters));
+    }
+    letters.next();
+    let ret = parse_type(&mut letters);
+    Signature { ret, args }
 }
 
 fn parse_comments(lines: &mut Peekable<Lines>) -> String {
@@ -184,6 +656,7 @@ fn parse_method_args(lines: &mut Peekable<Lines>) -> Vec<Arg> {
                 position: pos.parse::<u16>().unwrap(),
                 name: name.to_string(),
                 comment: parse_comments(lines),
+                modifiers: 0,
             });
         } else {
             break;
@@ -224,7 +697,6 @@ fn parse_class_inner(
         fields: HashMap::new(),
         methods: HashMap::new(),
         methods_nosig: HashMap::new(),
-        inner_classes: HashMap::new(),
     };
 
     while let Some(line) = lines.peek() {
@@ -254,6 +726,7 @@ fn parse_class_inner(
                         field_type: inner.next().unwrap().to_string(),
                         mapped_field_type: String::new(),
                         comments: parse_comments(lines),
+                        modifiers: 0,
                     },
                 );
             }
@@ -291,6 +764,7 @@ fn parse_class_inner(
                         mapped_signature: String::new(),
                         comments: parse_comments(lines),
                         args: parse_method_args(lines),
+                        modifiers: 0,
                     },
                 );
             }
@@ -348,11 +822,19 @@ fn replace_mappings(mappings: &HashMap<String, String>, t: &String) -> String {
     result
 }
 
-fn parse_mappings() -> Mappings {
+pub fn set_mappings(mappings: &Mappings) {
+    let current_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    fs::write(
+        current_dir.join("mappings_cache.bin"),
+        bitcode::encode(mappings),
+    )
+    .unwrap();
+}
+pub fn parse_mappings() -> Mappings {
     // Check if a serialized file exists
     let current_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     if let Ok(cache) = fs::read(current_dir.join("mappings_cache.bin")) {
-        return bincode::deserialize(&cache).unwrap();
+        return bitcode::decode(&cache).unwrap();
     }
     let mut mappings = Mappings::new();
     let mappings_dir = current_dir.join("yarn/mappings/");
@@ -406,11 +888,7 @@ fn parse_mappings() -> Mappings {
     }
 
     // Add mappings to cache
-    fs::write(
-        current_dir.join("mappings_cache.bin"),
-        bincode::serialize(&mappings).unwrap(),
-    )
-    .unwrap();
+    set_mappings(&mappings);
 
     mappings
 }

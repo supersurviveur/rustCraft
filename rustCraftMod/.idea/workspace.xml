@@ -5,13 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="246e216e-cf99-4976-803e-ade943dd860e" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../.ignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.ignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../build/out/librustcraft_test.so" beforeDir="false" afterPath="$PROJECT_DIR$/../build/out/librustcraft_test.so" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Minecraft_Server.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/Minecraft_Server.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/Rustcraftmod.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/Rustcraftmod.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/RustAPI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/RustAPI.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/rustblock/BlockAPI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/rustblock/BlockAPI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/rustblock/RustBlock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/rustblock/RustBlock.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/src/to_java/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/src/to_java/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/mappings_cache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/mappings_cache.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/main.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/yarn" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/yarn" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/api.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/api.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/block/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/block/mod.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/world.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/world.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tests/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tests/src/add_block.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/src/add_block.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -86,7 +102,7 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;/bin/javac&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/julien/code/rustCraft/mappingsMod&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -295,9 +311,22 @@
       <workItem from="1738340271635" duration="103000" />
       <workItem from="1738434458664" duration="2109000" />
       <workItem from="1738605164921" duration="949000" />
+<<<<<<< HEAD
       <workItem from="1738606120106" duration="340000" />
       <workItem from="1738607931860" duration="210000" />
       <workItem from="1738608154558" duration="3502000" />
+=======
+      <workItem from="1738606120106" duration="943000" />
+      <workItem from="1738755892518" duration="2223000" />
+      <workItem from="1738876732791" duration="2021000" />
+      <workItem from="1738926801136" duration="277000" />
+      <workItem from="1738943793826" duration="112000" />
+      <workItem from="1739113395456" duration="1348000" />
+      <workItem from="1739427181952" duration="1929000" />
+      <workItem from="1739446043873" duration="4206000" />
+      <workItem from="1739450701529" duration="134000" />
+      <workItem from="1739469603511" duration="482000" />
+>>>>>>> 5e39f12 (Start mappings generation)
     </task>
     <servers />
   </component>

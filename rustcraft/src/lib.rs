@@ -14,6 +14,10 @@ pub mod prelude;
 pub mod block_pos;
 pub mod minecraft_server;
 pub mod player_manager;
+pub mod registry;
+pub mod test;
+pub use test::com;
+pub use test::net;
 pub mod world;
 
 // Define the base traits for the mod
@@ -47,14 +51,6 @@ pub extern "system" fn Java_fr_supersurviveur_rustcraftmod_rustapi_RustAPI_onIni
     let mut api = ModApi::new(env, obj);
 
     let mc_mod = get_mod();
-
-    // let enum_class = api
-    //     .current_env
-    //     .find_class("net/minecraft/class_1269")
-    //     .expect(&format!(
-    //         "Couldn't find class {}",
-    //         "net/minecraft/class_1269"
-    //     ));
 
     mc_mod.on_enable(&mut api);
 }

@@ -25,7 +25,7 @@ pub fn enum_to_java_impl(attr: TokenStream, input: ItemEnum) -> TokenStream {
         let type_name = field.get_java_type();
         match_cases.extend(quote::quote! {
             #name::#variant => {
-                api.get_static_field(&enum_class, #variant_name, #type_name)
+                api.get_static_field(&enum_class, (#variant_name, #type_name))
             }
         });
     }
