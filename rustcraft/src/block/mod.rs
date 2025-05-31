@@ -1,19 +1,20 @@
 use std::ffi::c_void;
 
-use crate::world::World;
 mod action_result;
 pub use action_result::*;
 
 pub mod prelude;
 
-use crate::api::ModApi;
-
 pub trait Block {
     fn register(&self) -> Vec<(&str, &str, *mut c_void)> {
         panic!("Macro should be called on blocks !");
     }
-    fn on_stepped_on<'a>(&mut self, _api: ModApi<'a>, _world: World<'a>) {}
-    fn on_use(&mut self, _api: ModApi, _block_state: World, _world: World) -> ActionResult {
+    fn on_stepped_on<'a>(&mut self, _world: &'a mut crate::net::minecraft::world::World<'a>) {}
+    fn on_use<'a>(
+        &mut self,
+        _block_state: &'a mut crate::net::minecraft::world::World<'a>,
+        _world: &'a mut crate::net::minecraft::world::World<'a>,
+    ) -> ActionResult {
         return ActionResult::Pass;
     }
 }

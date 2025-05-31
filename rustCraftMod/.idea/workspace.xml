@@ -5,28 +5,24 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="246e216e-cf99-4976-803e-ade943dd860e" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/../.ignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.ignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../build/out/librustcraft_test.so" beforeDir="false" afterPath="$PROJECT_DIR$/../build/out/librustcraft_test.so" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/runConfigurations/Minecraft_Server.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/runConfigurations/Minecraft_Server.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/Rustcraftmod.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/Rustcraftmod.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/RustAPI.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/RustAPI.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/rustblock/RustBlock.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/fr/supersurviveur/rustcraftmod/rustapi/rustblock/RustBlock.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/src/lib.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/src/to_java/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_codegen/src/to_java/mod.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/Cargo.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/Cargo.toml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/mappings_cache.bin" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/mappings_cache.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/codegen.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/codegen.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/main.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/src/main.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/yarn" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/rustcraft_mappings/yarn" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../rustcraft/src/api.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/api.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../rustcraft/src/block/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/block/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../rustcraft/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../rustcraft/src/world.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/world.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tests/Cargo.lock" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/Cargo.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/minecraft_server.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/object.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/object.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/player_manager.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/test.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../rustcraft/src/test.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../rustcraft/src/world.rs" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tests/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/Cargo.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../tests/src/add_block.rs" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/src/add_block.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -326,7 +322,14 @@
       <workItem from="1739446043873" duration="4206000" />
       <workItem from="1739450701529" duration="134000" />
       <workItem from="1739469603511" duration="482000" />
+<<<<<<< HEAD
 >>>>>>> 5e39f12 (Start mappings generation)
+=======
+      <workItem from="1739537644905" duration="262000" />
+      <workItem from="1739544846146" duration="3700000" />
+      <workItem from="1739826318386" duration="2933000" />
+      <workItem from="1739861219837" duration="82000" />
+>>>>>>> 0824f1f (I don't know what I did here)
     </task>
     <servers />
   </component>

@@ -33,7 +33,7 @@ pub fn enum_to_java_impl(attr: TokenStream, input: ItemEnum) -> TokenStream {
     let output = quote::quote! {
         #input
         impl crate::object::ToJava for #name {
-            fn to_java<'local>(self, api: &mut ModApi<'local>) -> JObject<'local> {
+            fn to_java<'local>(self, api: ModApi<'local>) -> JObject<'local> {
                 let enum_class = api.get_class(#class_name);
                 let enum_field = match self {
                     #match_cases

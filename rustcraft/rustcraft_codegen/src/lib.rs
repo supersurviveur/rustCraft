@@ -187,7 +187,7 @@ pub fn register_block(input: TokenStream) -> TokenStream {
     let super_class = match t.to_string().as_str() {
         "Block" => "net/minecraft/block/Block",
         _ => {
-            abort!(t.span(), "This argument must be a block trait")
+            abort!(t.span(), "This argument must be a block trait, found {}", t)
         }
     };
 
@@ -242,7 +242,7 @@ pub fn block(_attr: TokenStream, item: TokenStream) -> TokenStream {
                         .sig
                         .inputs
                         .iter()
-                        .skip(2) // Skip self and api
+                        .skip(1) // Skip self and api
                         .enumerate()
                         .for_each(|(i, arg)| match arg {
                             syn::FnArg::Typed(arg) => {
@@ -252,11 +252,12 @@ pub fn block(_attr: TokenStream, item: TokenStream) -> TokenStream {
                                     #arg_name: rustcraft::prelude::JObject<'local>
                                 });
                                 custom_func_args_names.push(quote! {
-                                    #arg_name
+                                    &mut #arg_name
                                 });
                                 custom_func_body = quote! {
                                     #custom_func_body
-                                    let #arg_name = #type_name::new(api.clone(), #arg_name);
+                                    let mut #arg_name = rustcraft::net::minecraft::world::World::new(api.clone(), #arg_name);
+                                    // let #arg_name = #type_name::new(api.clone(), #arg_name);
                                 }
                             }
                             _ => {}
@@ -271,7 +272,7 @@ pub fn block(_attr: TokenStream, item: TokenStream) -> TokenStream {
                                 -> rustcraft::prelude::JObject<'local>
                             },
                             quote! {
-                                rustcraft::object::ToJava::to_java(result, &mut api)
+                                unsafe { JObject::from_raw(rustcraft::object::ToJava::to_java(result, api.clone()).clone()) }
                             },
                         )
                     } else {
@@ -289,9 +290,9 @@ pub fn block(_attr: TokenStream, item: TokenStream) -> TokenStream {
                             let mut api = ModApi::new(env, obj);
                             #custom_func_body
 
-                            let block: &mut Box<dyn rustcraft::block::Block> = rustcraft::prelude::load_object(&mut api, None);
+                            let block: &mut Box<dyn rustcraft::block::Block> = rustcraft::prelude::load_object(api.clone(), None);
 
-                            let result = block.#rust_method_name_ident(api.clone(), #(#custom_func_args_names),*);
+                            let result = block.#rust_method_name_ident(#(#custom_func_args_names),*);
                             #ret
                         }
                     });

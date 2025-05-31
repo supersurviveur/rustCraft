@@ -11,3 +11,6 @@ jni = "0.21.1"
 
 [lib]
 crate-type = ["lib"]
+
+[profile.dev]
+incremental = true

@@ -1,42 +1,46 @@
 use rustcraft::{
     block::{prelude::*, ActionResult},
+    net::minecraft::client::color::world,
     prelude::JObject,
-    world::World,
 };
-
 pub struct MyBlock {
     pub i: u64,
 }
-
 #[block]
 impl Block for MyBlock {
-    fn on_stepped_on<'a>(&mut self, _api: ModApi, world: World) {
+    fn on_stepped_on<'a>(&mut self, world: &'a mut rustcraft::net::minecraft::world::World<'a>) {
         self.i += 1;
-        let test = rustcraft::net::minecraft::world::World::new(
-            _api.clone(),
-            _api.new_local_ref(unsafe { std::mem::transmute::<&JObject, &JObject>(&world.inner) }),
-        );
+        println!("{}", world.is_night());
         if !world.is_client() {
-            world.get_server().unwrap().get_player_manager().broadcast(
-                format!(
-                    "When this is displayed, it means that it works ! cpt: {} + is_night : {} + is_client: {}",
-                    self.i,
-                    test.is_night(),
-                    test.get_is_client()
-                )
-                .as_str(),
-                false,
-            )
+            // world.get_server().unwrap().get_player_manager().broadcast(
+            //     format!(
+            //         "When this is displayed, it means that it works ! cpt: {} + is_night : {} + sky: {}",
+            //         self.i,
+            //         1, 1
+            //         // test.is_night(),
+            //         // test.is_client()
+            //     )
+            //     .as_str(),
+            //     false,
+            // )
         }
+        // let test = rustcraft::net::minecraft::world::WorldAccess::new(world.api.clone(), unsafe {
+        //     JObject::from_raw(world.inner.clone())
+        // });
+        // test.get_server();
     }
-    fn on_use(&mut self, _api: ModApi, _block_state: World, world: World) -> ActionResult {
-        if !world.is_client() {
-            world
-                .get_server()
-                .unwrap()
-                .get_player_manager()
-                .broadcast("hello world !", false)
-        }
+    fn on_use<'a>(
+        &mut self,
+        _block_state: &'a mut rustcraft::net::minecraft::world::World<'a>,
+        _world: &'a mut rustcraft::net::minecraft::world::World<'a>,
+    ) -> ActionResult {
+        // if !world.is_client() {
+        //     world
+        //         .get_server()
+        //         .unwrap()
+        //         .get_player_manager()
+        //         .broadcast("hello world !", false)
+        // }
         return ActionResult::Consume;
     }
 }

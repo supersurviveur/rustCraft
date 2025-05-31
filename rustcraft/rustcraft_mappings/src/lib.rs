@@ -183,15 +183,20 @@ pub fn method_to_java_convention(s: &str) -> String {
     to_rust_convention(s)
 }
 
-pub fn normalize(s: &mut String, insert: &str) {
+pub fn normalize(s: &mut String, insert: &str) -> bool {
     match s.as_str() {
         "type" | "match" | "move" | "use" | "self" | "in" | "where" | "macro" | "impl" | "box"
-        | "mod" | "ref" | "as" => s.insert_str(0, insert),
+        | "mod" | "ref" | "as" | "true" | "false" | "continue" => {
+            s.insert_str(0, insert);
+            return true;
+        }
         _ => {}
     }
     if s.chars().next().unwrap().is_numeric() {
-        s.insert_str(0, insert)
+        s.insert_str(0, insert);
+        return true;
     }
+    false
 }
 pub fn rust_to_java_method(s: &str) -> String {
     let s = s.to_lowercase();
@@ -383,7 +388,7 @@ impl quote::ToTokens for SigType {
 }
 
 impl Method {
-    pub fn to_tokens(&self, class_name: &str, struct_name: &Ident) -> TokenStream {
+    pub fn to_tokens(&self, class_name: &str, _struct_name: &Ident) -> TokenStream {
         let mut tokens = quote!();
         let method_name = java_to_rust_method(&self.mapped_name);
 
@@ -427,7 +432,7 @@ impl Method {
         let mut method_content = quote!();
         let args;
         if self.modifiers & Modifier::Static {
-            args = quote! {api: &mut crate::api::ModApi<'a>};
+            args = quote! {api: &'a mut crate::api::ModApi<'a>};
             method_content.extend::<TokenStream>(
                 quote! {
                         let class = api.get_class(#class_name);
@@ -444,12 +449,13 @@ impl Method {
                 .into(),
             );
         } else {
-            args = quote! {&self};
+            args = quote! {&'a self};
             method_content.extend::<TokenStream>(
                 quote! {
                         let api = &self.api;
                         let value = api
-                             .call_method(
+                             .call_method_class(
+                                 Some(#class_name),
                                  Some(&self.inner),
                                  (#method_java_name, #method_sig),
                                  &[],
@@ -492,22 +498,19 @@ impl Field {
             .unwrap()
             .is_ascii_uppercase()
         {
-            let name = &rust_to_java_method(&self.mapped_name);
-            &format!("const{}{}", &name[0..1].to_ascii_uppercase(), &name[1..])
+            let mut field_name = self.mapped_name.clone();
+            if class.methods_nosig.contains_key(&field_name) || normalize(&mut field_name, "") {
+                field_name = format!("{}_FIELD", field_name);
+            }
+            field_name
         } else {
-            let name = &self.mapped_name;
-            &format!("get{}{}", &name[0..1].to_ascii_uppercase(), &name[1..])
+            let mut field_name = java_to_rust_field(&self.mapped_name);
+            if class.methods_nosig.contains_key(&self.mapped_name) || normalize(&mut field_name, "")
+            {
+                field_name = format!("{}_field", field_name);
+            }
+            field_name
         };
-        // if self.mapped_name == "INSTANCE" {
-        //     println!("{}\n{:?}", field_name, class.methods_nosig.keys());
-        // }
-        if class.methods_nosig.contains_key(field_name) {
-            // a getter already exists
-            return quote! {};
-        }
-        let field_name = java_to_rust_field(field_name);
-        // field_name = format!("field_{}", field_name);
-        // normalize(&mut field_name, "");
 
         let field_type = parse_type(&mut self.mapped_field_type.chars().peekable());
         let field_sig = self.get_java_type();
@@ -541,7 +544,7 @@ impl Field {
         let mut field_content = quote!();
         let args;
         if self.modifiers & Modifier::Static {
-            args = quote! {api: &mut crate::api::ModApi<'a>};
+            args = quote! {api: &'a mut crate::api::ModApi<'a>};
             field_content.extend::<TokenStream>(
                 quote! {
                         let class = api.get_class(#class_name);
@@ -557,12 +560,13 @@ impl Field {
                 .into(),
             );
         } else {
-            args = quote! {&self};
+            args = quote! {&'a self};
             field_content.extend::<TokenStream>(
                 quote! {
                         let api = &self.api;
                         let value = api
-                             .get_field(
+                             .get_field_class(
+                                 Some(#class_name),
                                  Some(&self.inner),
                                  (#field_java_name, #field_sig)
                              )

@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::{java_to_rust_class, java_to_rust_method, java_to_rust_package, Class, MAPPINGS};
+use crate::{java_to_rust_class, java_to_rust_package, Class, MAPPINGS};
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
@@ -36,7 +36,7 @@ impl Package {
     }
     pub fn to_tokens(self) -> proc_macro2::TokenStream {
         let mut sub_packages_content = quote!();
-        for (mut name, sub_package) in self.sub_packages.into_iter() {
+        for (name, sub_package) in self.sub_packages.into_iter() {
             let module_name = format_ident!("{}", name);
             let inner = sub_package.to_tokens();
             sub_packages_content.extend(quote! {
@@ -61,7 +61,12 @@ pub fn auto_gen_impl() -> TokenStream {
     for class in MAPPINGS.mapped_map.values() {
         packages.insert(&class.mapped_name, gen_class(class));
     }
-    packages.to_tokens().into()
+    let result = packages.to_tokens();
+    quote! {
+        #![allow(non_snake_case, dead_code)]
+        #result
+    }
+    .into()
 }
 
 fn gen_class(mappings: &Class) -> proc_macro2::TokenStream {
@@ -73,6 +78,7 @@ fn gen_class(mappings: &Class) -> proc_macro2::TokenStream {
             .1,
     );
     let struct_name = format_ident!("{}", struct_name);
+    let struct_name_interface = format_ident!("{}Interface", struct_name);
 
     let struct_gen = quote! {
         #[derive(Debug)]

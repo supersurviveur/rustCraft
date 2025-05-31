@@ -9,3 +9,6 @@ rustcraft = { path = "../rustcraft" }
 
 [lib]
 crate-type = ["cdylib"]
+
+[profile.dev]
+incremental = true

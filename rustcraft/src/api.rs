@@ -4,19 +4,21 @@ use std::rc::Rc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::block::Block;
+use jni::descriptors::Desc;
 use jni::objects::{JClass, JObject, JString, JValue, JValueGen};
-use jni::sys::jlong;
+use jni::signature::TypeSignature;
+use jni::sys::{jlong, jvalue};
 use jni::{JNIEnv, NativeMethod};
 
 #[derive(Debug)]
 pub struct BaseApi<'local> {
-    pub(crate) current_env: JNIEnv<'local>,
-    pub(crate) current_obj: JObject<'local>,
+    pub current_env: JNIEnv<'local>,
+    pub current_obj: JObject<'local>,
 }
 
 #[derive(Clone, Debug)]
 pub struct ModApi<'local> {
-    pub(crate) api: Rc<RefCell<BaseApi<'local>>>,
+    pub api: Rc<RefCell<BaseApi<'local>>>,
 }
 
 impl<'local> ModApi<'local> {
@@ -30,11 +32,14 @@ impl<'local> ModApi<'local> {
     }
 }
 impl<'local> BaseApi<'local> {
-    pub(crate) fn get_field(
+    pub(crate) fn get_field<'a>(
         &mut self,
-        java_class: Option<&JObject>,
+        java_class: Option<&'a JObject<'a>>,
         signature: (&str, &str),
-    ) -> JValueGen<JObject<'local>> {
+    ) -> JValueGen<JObject<'a>>
+    where
+        'local: 'a,
+    {
         self.current_env
             .get_field(
                 java_class.unwrap_or(&self.current_obj),
@@ -47,12 +52,44 @@ impl<'local> BaseApi<'local> {
                 signature.0, signature.1
             ))
     }
-    pub(crate) fn call_method(
+    pub(crate) fn get_field_class<'a>(
         &mut self,
-        object: Option<&JObject>,
+        class: Option<&str>,
+        object: Option<&'a JObject<'a>>,
+        signature: (&str, &str),
+    ) -> JValueGen<JObject<'a>>
+    where
+        'local: 'a,
+    {
+        let class = class
+            .map(|c| Desc::<JClass>::lookup(c, &mut self.current_env).unwrap())
+            .unwrap_or(
+                self.current_env.auto_local(
+                    self.current_env
+                        .get_object_class(object.unwrap_or(&self.current_obj))
+                        .unwrap(),
+                ),
+            );
+        let ret = TypeSignature::from_str(signature.1).unwrap().ret;
+
+        self.current_env
+            .get_field_unchecked(
+                object.unwrap_or(&self.current_obj),
+                (class, signature.0, signature.1),
+                ret,
+            )
+            .inspect_err(|_| self.current_env.exception_describe().unwrap())
+            .unwrap()
+    }
+    pub(crate) fn call_method<'a>(
+        &mut self,
+        object: Option<&'a JObject<'a>>,
         signature: (&str, &str),
         args: &[JValue],
-    ) -> JValueGen<JObject<'local>> {
+    ) -> JValueGen<JObject<'a>>
+    where
+        'local: 'a,
+    {
         self.current_env
             .call_method(
                 object.unwrap_or(&self.current_obj),
@@ -63,12 +100,47 @@ impl<'local> BaseApi<'local> {
             .inspect_err(|_| self.current_env.exception_describe().unwrap())
             .unwrap()
     }
-    pub(crate) fn call_method_object(
+    pub(crate) fn call_method_class<'a>(
         &mut self,
-        object: Option<&JObject>,
+        class: Option<&str>,
+        object: Option<&'a JObject<'a>>,
         signature: (&str, &str),
         args: &[JValue],
-    ) -> JObject<'local> {
+    ) -> JValueGen<JObject<'a>>
+    where
+        'local: 'a,
+    {
+        let class = class
+            .map(|c| Desc::<JClass>::lookup(c, &mut self.current_env).unwrap())
+            .unwrap_or(
+                self.current_env.auto_local(
+                    self.current_env
+                        .get_object_class(object.unwrap_or(&self.current_obj))
+                        .unwrap(),
+                ),
+            );
+        let ret = TypeSignature::from_str(signature.1).unwrap().ret;
+        let args: Vec<jvalue> = args.iter().map(|v| v.as_jni()).collect();
+        unsafe {
+            self.current_env.call_method_unchecked(
+                object.unwrap_or(&self.current_obj),
+                (class, signature.0, signature.1),
+                ret,
+                &args,
+            )
+        }
+        .inspect_err(|_| self.current_env.exception_describe().unwrap())
+        .unwrap()
+    }
+    pub(crate) fn call_method_object<'a>(
+        &mut self,
+        object: Option<&'a JObject<'a>>,
+        signature: (&str, &str),
+        args: &[JValue],
+    ) -> JObject<'a>
+    where
+        'local: 'a,
+    {
         self.call_method(object, signature, args).l().unwrap()
     }
 
@@ -90,24 +162,56 @@ fn get_id() -> usize {
     COUNTER.fetch_add(1, Ordering::Relaxed)
 }
 impl<'a> ModApi<'a> {
-    pub(crate) fn get_field(
+    pub(crate) fn get_field<'local>(
         &self,
-        java_class: Option<&JObject>,
+        java_class: Option<&'local JObject<'local>>,
         signature: (&str, &str),
-    ) -> JValueGen<JObject<'a>> {
+    ) -> JValueGen<JObject<'local>>
+    where
+        'a: 'local,
+    {
         self.api.borrow_mut().get_field(java_class, signature)
     }
-    pub(crate) fn call_method(
+    pub(crate) fn get_field_class<'local>(
         &self,
-        object: Option<&JObject>,
+        class: Option<&str>,
+        object: Option<&'local JObject<'local>>,
+        signature: (&str, &str),
+    ) -> JValueGen<JObject<'local>>
+    where
+        'a: 'local,
+    {
+        self.api
+            .borrow_mut()
+            .get_field_class(class, object, signature)
+    }
+    pub(crate) fn call_method<'local>(
+        &self,
+        object: Option<&'local JObject<'local>>,
         signature: (&str, &str),
         args: &[JValue],
-    ) -> JValueGen<JObject<'a>> {
+    ) -> JValueGen<JObject<'local>>
+    where
+        'a: 'local,
+    {
         (*self.api)
             .borrow_mut()
             .call_method(object, signature, args)
     }
-
+    pub(crate) fn call_method_class<'local>(
+        &self,
+        class: Option<&str>,
+        object: Option<&'local JObject<'local>>,
+        signature: (&str, &str),
+        args: &[JValue],
+    ) -> JValueGen<JObject<'local>>
+    where
+        'a: 'local,
+    {
+        self.api
+            .borrow_mut()
+            .call_method_class(class, object, signature, args)
+    }
     pub(crate) fn get_block_manager(&self) -> JObject<'a> {
         (*self.api).borrow_mut().get_block_manager()
     }
@@ -122,7 +226,7 @@ impl<'a> ModApi<'a> {
             .expect("Error while creating a java string")
     }
 
-    pub(crate) fn get_class(&self, class: &str) -> JClass {
+    pub fn get_class(&self, class: &str) -> JClass {
         (*self.api)
             .borrow_mut()
             .current_env
@@ -130,7 +234,7 @@ impl<'a> ModApi<'a> {
             .expect(&format!("Couldn't find class {}", class))
     }
 
-    pub(crate) fn get_static_field(
+    pub fn get_static_field(
         &self,
         class: &JClass,
         signature: (&str, &str),
@@ -139,7 +243,10 @@ impl<'a> ModApi<'a> {
             .borrow_mut()
             .current_env
             .get_static_field(class, signature.0, signature.1)
-            .expect(&format!("Couldn't get field {}: {}", signature.0, signature.1))
+            .expect(&format!(
+                "Couldn't get field {}: {}",
+                signature.0, signature.1
+            ))
     }
     pub(crate) fn call_static_method(
         &self,

@@ -12,13 +12,10 @@ pub mod object;
 pub mod prelude;
 
 pub mod block_pos;
-pub mod minecraft_server;
-pub mod player_manager;
 pub mod registry;
 pub mod test;
 pub use test::com;
 pub use test::net;
-pub mod world;
 
 // Define the base traits for the mod
 pub trait RustCraftMod {
